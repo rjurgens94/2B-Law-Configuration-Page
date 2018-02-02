@@ -1,0 +1,543 @@
+﻿<html>
+
+<head>
+    <title>2B-LAW Configuration</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- /WebResources/ClientGlobalContext.js.aspx is accessed using a relative path
+    because the name of the Web Resource created from this file is "sample_/JavaScriptRESTDataOperationsSample.htm".
+
+    The use of the backslash within the name creates a virtual folder that must be considered
+    in relative links between Web Resources.
+    -->
+    <script src="../ClientGlobalContext.js.aspx"></script>
+    <script src="Scripts/SDK.REST.js" type="text/javascript"></script>
+    <script src="Scripts/ConfigurationOperations.js" type="text/javascript"></script>
+    <!--<link href="Styles/2BLawConfigurationPage.css" rel="stylesheet" type="text/css"/>-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+        crossorigin="anonymous">
+    <script>
+        var configExists = false;
+
+        document.onreadystatechange = function () {
+            switch (document.readyState) {
+                case "loading":
+                    // The document is still loading
+
+                    break;
+                case "interactive":
+                    // The document has finished loading. We can now access the DOM elements.
+                    //var span = document.createElement("span");
+                    //span.textContent = "A <span> element.";
+                    //document.body.appendChild(span);
+                    // configLabel = document.getElementById("configLabel");
+                    // configLabel.innerText = "Found";
+                    // configLabel.className = "badge badge-success btn-sm";
+                case "complete":
+
+                    //Call functions for Getting Entities (Licence, 2BLaw Version, Legal Record Configuration )
+                    // The page is fully loaded.
+                    debugger;
+                    getSolution();
+                    var ckLaw = document.getElementById("ckDlaw").checked = false;
+                    // getConfigurationRecordExists();
+                    // getLegalConfiguration();
+                    console.log("The first CSS rule is: " + document.styleSheets[0].cssRules[0].cssText);
+                    break;
+            }
+        }
+
+        // function validToken() {
+        //     debugger
+        //     var serverUrl = window.parent.Xrm.Page.context.getClientUrl();
+        //     var ODataPath = serverUrl + "/XRMServices/2011/OrganizationData.svc";
+        //     var userRequest = new XMLHttpRequest();
+        //     var reqString =
+        //         "/bbs_licenseSet?$select=bbs_token";
+        //     var token = document.getElementById("button").value;
+        //     if (!localStorage.getItem('accessToken') {
+        //         window.location.replace('')
+
+        //     })
+        // }
+
+        //Generic Form Script
+
+        function CallWorkflow(szWorkflowName) {
+            debugger
+            var _url = Xrm.Page.context.getClientUrl();
+            var _query = "/WorkflowSet?$select=WorkflowId&$filter=Name eq '" + szWorkflowName +
+                "' and ActiveWorkflowId/Id ne null";
+            var _odataurl = _url + "/XRMServices/2011/OrganizationData.svc" + _query;
+            var _uReq = new XMLHttpRequest();
+            _uReq.open("GET", _odataurl, false);
+            _uReq.setRequestHeader("Accept", "application/json");
+            _uReq.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            _uReq.onreadystatechange = function () {
+                if (this.readyState == 4) {
+                    if (this.status === 200) {
+                        debugger
+                        var _json = JSON.parse(_uReq.responseText);
+                        var _res;
+                        if ((_json != undefined) && (_json.d != undefined) && (_json.d.results != undefined) && (
+                                _json.d.results[0] != null)) {
+                            _res = _json.d.results[0];
+                            var _wfid = _res.WorkflowId;
+                            //test id
+                            if (_wfid != null) {
+                                //call runworkflow
+                                RunWorkflow(_wfid, inButtonId);
+                            } else {
+                                alert("Error: Could Not Find Workflow by Name: " + szWorkflowName);
+                            }
+                        }
+                    } else {
+                        alert("Problem getting Workflow Named: " + szWorkflowName);
+                    }
+                }
+            }
+            _uReq.send();
+        }
+
+        function RunWorkflow(szWorkflowID) {
+            var url = Xrm.Page.context.getClientUrl();
+            var entityId = Xrm.Page.data.entity.getId();
+            var workflowId = szWorkflowID;
+            var OrgServicePath = "/XRMServices/2011/Organization.svc/web";
+            url = url + OrgServicePath;
+            var request;
+            request = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+                "<s:Body>" +
+                "<Execute xmlns=\"http://schemas.microsoft.com/xrm/2011/Contracts/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                "<request i:type=\"b:ExecuteWorkflowRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\" xmlns:b=\"http://schemas.microsoft.com/crm/2011/Contracts\">" +
+                "<a:Parameters xmlns:c=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">" +
+                "<a:KeyValuePairOfstringanyType>" +
+                "<c:key>EntityId</c:key>" +
+                "<c:value i:type=\"d:guid\" xmlns:d=\"http://schemas.microsoft.com/2003/10/Serialization/\">" +
+                entityId + "</c:value>" +
+                "</a:KeyValuePairOfstringanyType>" +
+                "<a:KeyValuePairOfstringanyType>" +
+                "<c:key>WorkflowId</c:key>" +
+                "<c:value i:type=\"d:guid\" xmlns:d=\"http://schemas.microsoft.com/2003/10/Serialization/\">" +
+                workflowId + "</c:value>" +
+                "</a:KeyValuePairOfstringanyType>" +
+                "</a:Parameters>" +
+                "<a:RequestId i:nil=\"true\" />" +
+                "<a:RequestName>ExecuteWorkflow</a:RequestName>" +
+                "</request>" +
+                "</Execute>" +
+                "</s:Body>" +
+                "</s:Envelope>";
+
+            var req = new XMLHttpRequest();
+            req.open("POST", url, true)
+            // Responses will return XML. It isn't possible to return JSON.
+            req.setRequestHeader("Accept", "application/xml, text/xml, */*");
+            req.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
+            req.setRequestHeader("SOAPAction",
+                "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Execute");
+            req.onreadystatechange = function () {
+                assignResponse(req);
+            };
+            req.send(request);
+
+        }
+
+        function assignResponse(req) {
+            if (req.readyState == 4) {
+                if (req.status == 200) {
+                    alert("License Workflow Run")
+                    //save and refresh 
+                    // Xrm.Page.data.save();
+                    // Xrm.Page.data.refresh();
+                }
+            }
+        }
+
+        function submitLicense() {
+            debugger
+
+            var newOrganizationID = "orgd5c974c7";
+            var newCompanyName = "2B Solutions, Inc";
+            var newName = "Shawn Shelton";
+            var bbs_newRecord = {};
+            bbs_newRecord.bbs_name = newName;
+            bbs_newRecord.bbs_CompanyName = newCompanyName;
+            bbs_newRecord.bbs_OrganizationID = newOrganizationId;
+            jsonEntity = window.JSON.stringify(bbs_newRecord);
+            userRequest.open("POST", encodeURI(ODataPath + "/new_licenseSet"), false);
+            userRequest.setRequestHeader("Accept", "application/json");
+            userRequest.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            userRequest.onreadystatechange = function () {
+                if (this.readyState == 4) {
+                    if (this.status === 204 || this.status === 201) {} else {
+                        alert("Error while creating new record. Record did not successfully create. " + userRequest
+                            .responseText);
+                    }
+                }
+            }
+            userRequest.send(jsonEntity);
+            CallWorkflow("Register Solution");
+            //alert(_val + " " + _row);
+        }
+        //organization id code 
+        //token GEJUPA6IcXY+zJgmmPOk/ECL1AptfKFH5Gey2/QuX0k=
+
+        function getLegalConfiguration() {
+            debugger
+            var serverUrl = window.parent.Xrm.Page.context.getClientUrl();
+            var ODataPath = serverUrl + "/XRMServices/2011/OrganizationData.svc";
+            var userRequest = new XMLHttpRequest();
+            var reqString =
+                "/bbs_legalconfigurationSet?$select=bbs_DivorceLaw, bbs_TrafficLaw, bbs_FamilyLaw, bbs_EnvironmentalLaw, bbs_CorporateLaw, bbs_MALaw, bbs_EmploymentLaw, bbs_ImmigrationLaw, bbs_HealthLaw, bbs_BankruptcyLaw, bbs_IntellectualProperty, bbs_TaxLaw, bbs_PersonalInjury, bbs_CivilLitigation, bbs_EstatePlanning, bbs_MilitaryLaw, bbs_EntertainmentLaw, bbs_Criminal, bbs_NumberOfAttorneys ";
+            userRequest.open("GET", ODataPath + reqString, false);
+            userRequest.setRequestHeader("Accept", "application/json");
+            userRequest.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            userRequest.onreadystatechange = function () {
+                if (this.readyState == 4) {
+                    if (this.status === 200) {
+                        debugger
+                        var json = JSON.parse(userRequest.responseText);
+                        if ((json != undefined) && (json.d != undefined) && (json.d.results != undefined) && (json.d
+                                .results[0] != null)) {
+                            // for (var i = 0; i < json.d.results.length; i++) {
+
+                            var _res = json.d.results[0];
+                            var dLaw = _res.bbs_DivorceLaw;
+                            var ckLaw = document.getElementById("ckDlaw").checked = true;
+                        }
+                    }
+                }
+            }
+            userRequest.send();
+        }
+
+        //Because Firefox doesn't  support innerText
+        function getLicense() {
+            debugger
+            var serverUrl = window.parent.Xrm.Page.context.getClientUrl();
+            var ODataPath = serverUrl + "/XRMServices/2011/OrganizationData.svc";
+            var userRequest = new XMLHttpRequest();
+            var reqString =
+                "/bbs_licenseSet?$select=bbs_LicenseKey, bbs_LicenseExpiration, bbs_LicenseStatus, bbs_token, bbs_NumberOfUsers, bbs_TrialToken, bbs_TrialKey, bbs_TrialExpiration, bbs_TrialActive ";
+            userRequest.open("GET", ODataPath + reqString, false);
+            userRequest.setRequestHeader("Accept", "application/json");
+            userRequest.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            userRequest.onreadystatechange = function () {
+                if (this.readyState == 4) {
+                    if (this.status === 200) {
+                        var json = JSON.parse(userRequest.responseText);
+                        if ((json != undefined) && (json.d != undefined) && (json.d.results != undefined) && (json.d
+                                .results[0] != null)) {
+                            for (var i = 0; i < json.d.results.length; i++) {
+                                debugger
+                                var _res = json.d.results[i];
+                                var _val = _res.new_ExtendedValue.Value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function getSolution() {
+            debugger
+            var serverUrl = window.parent.Xrm.Page.context.getClientUrl();
+            var ODataPath = serverUrl + "/XRMServices/2011/OrganizationData.svc";
+            var userRequest = new XMLHttpRequest();
+            var reqString = "/SolutionSet?$select=Version&$filter=FriendlyName eq 'FullLegalSolution'";
+            userRequest.open("GET", ODataPath + reqString, false);
+            userRequest.setRequestHeader("Accept", "application/json");
+            userRequest.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            userRequest.onreadystatechange = function () {
+                if (this.readyState == 4) {
+                    if (this.status === 200) {
+                        debugger
+                        var json = JSON.parse(userRequest.responseText);
+                        if ((json != undefined) && (json.d != undefined) && (json.d.results != undefined) && (json.d
+                                .results[0] != null)) {
+                            debugger
+                            var _res = json.d.results[0];
+                            var _val = _res.Version;
+                            var _txtV = document.getElementById("txtVer");
+                            _txtV.value = _val;
+                        }
+                    }
+                }
+            }
+            userRequest.send();
+        }
+
+        function setElementText(element, text) {
+            if (element.innerText != undefined) {
+                element.innerText = text;
+            } else {
+                element.textContent = text;
+            }
+        }
+    </script>
+    <meta>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <meta charset="utf-8">
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+    <style type="text/css">
+        P {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body onfocusout="parent.setEmailRange();" style="word-wrap: break-word;">
+    <div class="container-fluid" style="font-family: undefined;">
+        <p></p>
+        <div class="row">
+            <div class="col-md-12">
+                <img alt="2B Logo" src="images/2blogo.png">
+                <tr>
+                    <td>
+                        Full Legal Solution
+                    </td>
+                    <br>
+                    <input id="txtVer" type="text" readonly="readonly" />
+
+                </tr>
+
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    <div id="accordion" role="tablist">
+        <div class="card">
+            <div class="card-header" role="tab" id="headingOne">
+                <h5 class="mb-0">
+                    <a data-toggle="collapse" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        License Registration
+                    </a>
+                </h5>
+            </div>
+
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">
+                <div class="card-body">
+                    Token:
+                    <input id="token">
+                    <button class="btn btn-primary" id="btnSubmit" type="button" onclick="submitLicense()">Submit</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" role="tab" id="headingTwo">
+                <h5 class="mb-0">
+                    <a class="collapsed" data-toggle="collapse" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Legal Configuration Record
+                    </a>
+                </h5>
+            </div>
+            <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo" data-parent="#accordion">
+                <div class="card-body">
+
+                    <form>
+                        <div class="form-group">
+                            <label for="details">Organization Name:</label>
+                            <input type="details" class="form-control" id="details">
+                        </div>
+                        <div class="form-group">
+                            <label for="practice">Practice:</label>
+                            <div class="form-group">
+                                <label for="exampleFormControlSelect1"></label>
+                                <select class="form-control" id="exampleFormControlSelect1">
+                                    <option>Civil</option>
+                                    <option>Criminal</option>
+                                    <option>Statute</option>
+                                    <option>Civil and Criminal</option>
+                                </select>
+                            </div>
+                        </div>
+                        Please select your firms type(s) of practice(s).
+                        <br>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-sm">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox"> Family Law</label>
+                                            <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox"> Military Law</label>
+                                                </div>
+                                                <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox"> Entertainment Law</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox"> Civil Litigation Law</label>
+                                                        </div>
+                                                        <div class="checkbox">
+                                                                <label>
+                                                                    <input type="checkbox"> Divorce Law</label>
+                                                            </div>
+                                                            <div class="checkbox">
+                                                                    <label>
+                                                                        <input type="checkbox"> Estate Planning Law</label>
+                                                                </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox"> Traffic Law</label>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox"> Tax Law</label>
+                                        </div>
+                                        <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox"> Corporate Law</label>
+                                            </div>
+                                            <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox"> Employment Law</label>
+                                                </div>
+                                                <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox"> Bankruptcy Law</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox"> Intelletual Property Law</label>
+                                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox"> Mergers and Accquisition Law</label>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox"> Environmental Law</label>
+                                        </div>
+                                        <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox"> Immigration Law</label>
+                                            </div>
+                                            <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox"> Health Law</label>
+                                                </div>
+                                                <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox"> Criminal Law</label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox"> Personal Injury Law</label>
+                                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" role="tab" id="headingThree">
+                    <h5 class="mb-0">
+                        <a class="collapsed" data-toggle="collapse" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            Default Price List
+                        </a>
+                    </h5>
+                </div>
+                <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree" data-parent="#accordion">
+                    <div class="card-body">
+                        Text about price list.
+                        <button class="btn btn-primary btn-sm" id="sampleInstall" type="button">
+                            Install
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" role="tab" id="headingFour">
+                    <h5 class="mb-0">
+                        <a class="collapsed" data-toggle="collapse" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            Install Samples
+                        </a>
+                    </h5>
+                </div>
+
+                <div id="collapseFour" class="collapse" role="tabpanel" aria-labelledby="headingFour" data-parent="#accordion">
+                    <div class="card-body">
+                        Divorce Law Sample Data
+                        <button class="btn btn-primary btn-sm" id="sampleInstall" type="button">
+                            Install
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ol id="output"></ol>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
+            crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
+            crossorigin="anonymous"></script>
+        <script src="2bLawConfig_Old.js"></script>
+
+
+
+        <!--</snippetDataOperationsHTML>-->
+
+
+
+</body>
+
+
+</html>

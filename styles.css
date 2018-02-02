@@ -1,0 +1,68 @@
+.logo {
+  width: 302px;
+  height: 91px;
+  margin: auto;
+  position: relative;
+}
+
+.panelCollapse {
+  width: 70%;
+  margin: auto;
+}
+
+.panel-heading:hover {
+  cursor: pointer;
+}
+
+[data-toggle=collapse].collapsed .if-not-collapsed,
+[data-toggle=collapse]:not(.collapsed) .if-collapsed {
+  display: none;
+}
+
+@font-face {
+  font-family: 'glyphicons_halflings_regular';
+  src: url('../Fonts/glyphicons_halflings_regular.ttf.css');
+}
+
+@font-face {
+  font-family: 'glyphicons_halflings_regular_ie';
+  src: url('../Fonts/glyphicons_halflings_regular.eot.css');
+}
+
+.clpglyph {
+  font-family: glyphicons_halflings_regular, Fallback, glyphicons_halflings_regular_ie;
+  font-size: 14px;
+}
+
+.btn-txtVer {
+  color: white;
+  background-color: gray;
+}
+
+.table-fixed {
+  display: block;
+  /*//width: 100%;*/
+  tbody {
+    height: 400px;
+    overflow-y: auto;
+    width: 100%;
+  }
+  thead,
+  tbody,
+  tr,
+  td,
+  th {
+    display: block;
+  }
+  tbody {
+    td {
+    }
+  }
+  thead {
+    tr {
+      th {
+        border-color: #e67e22;
+      }
+    }
+  }
+}
